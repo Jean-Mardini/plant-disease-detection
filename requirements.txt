@@ -14,7 +14,3 @@ seaborn
 # Flask web dashboard
 flask
 
-# (Optional) for the build_assets / build_pptx / build_docx scripts in .claude/
-# python-pptx
-# python-docx
-# requests
