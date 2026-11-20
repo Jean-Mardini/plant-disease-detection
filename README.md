@@ -4,6 +4,8 @@ A PyTorch computer-vision pipeline for smartphone-based plant disease diagnosis,
 
 **Final accuracy on real-world PlantDoc test set: 75.40% (TTA), F1 (macro) = 0.746, across 27 disease classes and 14 plant species.**
 
+Team project, forked from [marckhat/plant-disease-detection](https://github.com/marckhat/plant-disease-detection). My part: model training (ResNet50 and EfficientNet-B0 on PlantVillage + PlantDoc) and part of the Flask dashboard.
+
 ---
 
 ## Results
