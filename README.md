@@ -1,6 +1,6 @@
 # Verdis  ·  Plant Disease Detection
 
-A PyTorch computer-vision pipeline for smartphone-based plant disease diagnosis, focused on **real-world robustness under domain shift**. The model is trained on the clean PlantVillage benchmark and evaluated on real field photographs from PlantDoc, with a Flask web dashboard for interactive inference, Grad-CAM explainability, and ResNet50 vs EfficientNet-B0 comparison.
+A PyTorch computer-vision pipeline for smartphone-based plant disease diagnosis, focused on robustness to domain shift (lab photos vs field photos). The model is trained on the clean PlantVillage benchmark and evaluated on real field photographs from PlantDoc, with a Flask web dashboard for interactive inference, Grad-CAM explainability, and ResNet50 vs EfficientNet-B0 comparison.
 
 **Final accuracy on real-world PlantDoc test set: 75.40% (TTA), F1 (macro) = 0.746, across 27 disease classes and 14 plant species.**
 
@@ -14,15 +14,15 @@ All evaluations on the 252-image **PlantDoc real-world test set** (smartphone-qu
 
 | Model | Training data | Accuracy | F1 (macro) | Notes |
 |-------|---------------|---------:|-----------:|-------|
-| ResNet50 | PlantVillage only | ~30% | — | Lab-only baseline; collapses on field photos |
-| ResNet50 | Joint (PV + PD) | 58.33% | — | + real-world data |
-| ResNet50 | joint_all (PV + PD + aug PD) | 73.41% | — | + augmented PlantDoc |
+| ResNet50 | PlantVillage only | ~30% | n/a | Lab-only baseline; collapses on field photos |
+| ResNet50 | Joint (PV + PD) | 58.33% | n/a | + real-world data |
+| ResNet50 | joint_all (PV + PD + aug PD) | 73.41% | n/a | + augmented PlantDoc |
 | **ResNet50** | **joint_all + 8-view TTA** | **75.40%** | **0.7460** | **Production model** |
 | EfficientNet-B0 | Joint (PV + PD) + TTA | 57.14% | 0.5535 | Architecture comparison |
 
-Five of the 27 classes reach **perfect F1 = 1.00** (Grape healthy, Grape Black rot, Blueberry healthy, Pepper bell healthy, Strawberry healthy). Eleven classes reach F1 ≥ 0.85. The weakest classes — Potato Early/Late Blight and Corn Gray Leaf Spot — fail in clusters of visually similar pathologies.
+Five of the 27 classes reach F1 = 1.00 (Grape healthy, Grape Black rot, Blueberry healthy, Pepper bell healthy, Strawberry healthy). Eleven classes reach F1 ≥ 0.85. The weakest classes (Potato Early/Late Blight, Corn Gray Leaf Spot) are confused with visually similar diseases.
 
-> **Headline lesson**: data strategy outweighs architecture choice. ResNet50 and EfficientNet-B0 are within statistical noise of each other on identical conditions; the 18-point gap between the production model and either architecture trained on the smaller `joint` dataset is driven almost entirely by the additional augmented training data.
+Main lesson: the training data mattered more than the architecture. ResNet50 and EfficientNet-B0 are within statistical noise of each other on identical conditions; the 18-point gap between the production model and either architecture trained on the smaller `joint` dataset is driven almost entirely by the additional augmented training data.
 
 ---
 
@@ -37,11 +37,11 @@ pip install -r requirements.txt
 #   results/models/best_resnet50_joint_all.pt
 # (see "Pretrained weights" section below)
 
-# Option A — launch the Flask dashboard
+# Option A: launch the Flask dashboard
 python src/app/app.py
 # then open http://localhost:5000
 
-# Option B — single-image inference via API
+# Option B: single-image inference via API
 curl -X POST -F "image=@leaf.jpg" http://localhost:5000/api/predict
 ```
 
@@ -65,14 +65,14 @@ Example response:
 
 | Capability | Where |
 |---|---|
-| **Domain-robust training** — PV + PD + augmented PD with strong augmentation | `src/train/train.py` |
-| **Two-phase fine-tuning** — freeze backbone N epochs, then unfreeze (LR×0.1) | `--freeze-epochs N` |
-| **Focal Loss** — γ = 2.0, with inverse-frequency class weights | `--focal-loss` |
-| **CutMix regularization** | `--cutmix 0.3` |
-| **Test-Time Augmentation** — 8 views averaged at inference | `--tta --tta-n 8` |
-| **Grad-CAM explainability** — live heatmap overlay in dashboard | `/api/gradcam` |
-| **Model comparison** — ResNet50 vs EfficientNet-B0 side-by-side | dashboard `Model comparison` view |
-| **Evaluation dashboard** — confusion matrix + per-class F1 | dashboard `Evaluation` view |
+| Domain-robust training: PV + PD + augmented PD with strong augmentation | `src/train/train.py` |
+| Two-phase fine-tuning: freeze backbone N epochs, then unfreeze (LR×0.1) | `--freeze-epochs N` |
+| Focal Loss: γ = 2.0, with inverse-frequency class weights | `--focal-loss` |
+| CutMix regularization | `--cutmix 0.3` |
+| Test-Time Augmentation: 8 views averaged at inference | `--tta --tta-n 8` |
+| Grad-CAM explainability: live heatmap overlay in dashboard | `/api/gradcam` |
+| Model comparison: ResNet50 vs EfficientNet-B0 side-by-side | dashboard `Model comparison` view |
+| Evaluation dashboard: confusion matrix + per-class F1 | dashboard `Evaluation` view |
 
 ---
 
@@ -130,7 +130,7 @@ plant-disease-detection/
 │   └── utils/
 │       └── seed.py
 ├── results/
-│   ├── models/                     # Checkpoints (.pt files — git-ignored, ~91 MB each)
+│   ├── models/                     # Checkpoints (.pt files, git-ignored, ~91 MB each)
 │   ├── metrics/                    # eval_<model>_<split>.json + classification reports
 │   └── confusion_matrices/         # *.png confusion-matrix images
 ├── Project_Presentation.pptx       # 13-slide, 10-min talk deck
@@ -177,10 +177,10 @@ python src/data/build_aligned_dataset.py
 
 ### 4.  Pretrained weights
 
-The production checkpoint `best_resnet50_joint_all.pt` (≈91 MB) is **not** included in the git history due to size. You can obtain it two ways:
+The production checkpoint `best_resnet50_joint_all.pt` (≈91 MB) is not in the repo because of its size. Two ways to get it:
 
-- **Reproduce training** — see the next section. End-to-end training takes ~10 hours on a single mid-range GPU.
-- **Download from a release / shared link** — if you forked this repo, drop the file at `results/models/best_resnet50_joint_all.pt`.
+- Reproduce training: see the next section. End-to-end training takes ~10 hours on a single mid-range GPU.
+- Download the checkpoint and put it at `results/models/best_resnet50_joint_all.pt`.
 
 ---
 
@@ -189,7 +189,7 @@ The production checkpoint `best_resnet50_joint_all.pt` (≈91 MB) is **not** inc
 The final training run uses a two-stage process: train on the augmented joint set, then fine-tune at very low LR with frozen-backbone warmup.
 
 ```bash
-# Stage 1 — initial training on the full augmented dataset
+# Stage 1: initial training on the full augmented dataset
 python src/train/train.py \
   --model resnet50 \
   --dataset joint_all \
@@ -204,7 +204,7 @@ python src/train/train.py \
   --patience 5 \
   --log-every 150
 
-# Stage 2 — gentle fine-tune from the saved checkpoint
+# Stage 2: fine-tune from the saved checkpoint
 python src/train/train.py \
   --model resnet50 \
   --dataset joint_all \
@@ -274,7 +274,7 @@ results/confusion_matrices/cm_<model>_<split>.png
 
 After alignment to 27 shared classes: 30,747 PV train / 7,372 PV val / 2,668 PD train / 252 PD test = **41,039 images total**.
 
-Both datasets share 27 disease classes across 14 plant species (apple, blueberry, cherry, corn, grape, peach, pepper, potato, raspberry, soybean, squash, strawberry, tomato — plus healthy classes).
+Both datasets share 27 classes (diseases and healthy leaves) across 14 plant species.
 
 ---
 
@@ -282,9 +282,9 @@ Both datasets share 27 disease classes across 14 plant species (apple, blueberry
 
 This repository includes the full project deliverables:
 
-- **`Project_Presentation.pptx`** — 13-slide deck designed for a 10-minute talk
-- **`Project_Presentation_Full.pptx`** — 23-slide comprehensive version with full methodology depth
-- **`Project_Report.docx`** — 11-page academic report (6 sections: Introduction, Dataset, Methodology, Experiments, Discussion, Conclusion)
+- `Project_Presentation.pptx`: 13-slide deck designed for a 10-minute talk
+- `Project_Presentation_Full.pptx`: 23-slide comprehensive version with full methodology depth
+- `Project_Report.docx`: 11-page academic report (6 sections: Introduction, Dataset, Methodology, Experiments, Discussion, Conclusion)
 
 ---
 
